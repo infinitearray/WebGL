@@ -1,0 +1,138 @@
+<!DOCTYPE <!DOCTYPE html>
+<html>
+<head>
+	<title>Experiment-webgl</title>
+	<script type="text/javascript">
+////////////
+function compileShader(gl, shaderSource, shaderType) {
+  // Create the shader object
+  var shader = gl.createShader(shaderType);
+ 
+  // Set the shader source code.
+  gl.shaderSource(shader, shaderSource);
+ 
+  // Compile the shader
+  gl.compileShader(shader);
+ 
+  // Check if it compiled
+  var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+  if (!success) {
+    // Something went wrong during compilation; get the error
+    throw "could not compile shader:" + gl.getShaderInfoLog(shader);
+  }
+ 
+  return shader;
+}
+////////////
+	function createShaderFromScriptTag(gl, scriptId, opt_shaderType) {
+  // look up the script tag by id.
+  		var shaderScript = document.getElementById(scriptId);
+  		if (!shaderScript) {
+    		throw("*** Error: unknown script element" + scriptId);
+  		}
+ 
+  // extract the contents of the script tag.
+  		var shaderSource = shaderScript.text;
+ 
+  // If we didn't pass in a type, use the 'type' from
+  // the script tag.
+  		if (!opt_shaderType) {
+    		if (shaderScript.type == "x-shader/x-vertex") {
+      			opt_shaderType = gl.VERTEX_SHADER;
+    		} 
+    		else if (shaderScript.type == "x-shader/x-fragment") {
+      			opt_shaderType = gl.FRAGMENT_SHADER;
+    		}
+    		else if (!opt_shaderType) {
+      			throw("*** Error: shader type not set");
+    		}
+  		}
+  		return compileShader(gl, shaderSource, opt_shaderType);
+	};
+/////////////////
+function createProgram(gl, vertexShader, fragmentShader) {
+  // create a program.
+  var program = gl.createProgram();
+ 
+  // attach the shaders.
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+ 
+  // link the program.
+  gl.linkProgram(program);
+ 
+  // Check if it linked.
+  var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+  if (!success) {
+      // something went wrong with the link
+      throw ("program filed to link:" + gl.getProgramInfoLog (program));
+  }
+ 
+  return program;
+};
+//////////////////////////
+	function createProgramFromScripts(gl, vertexShaderId, fragmentShaderId) {
+  var vertexShader = createShaderFromScriptTag(gl, vertexShaderId);
+  var fragmentShader = createShaderFromScriptTag(gl, fragmentShaderId);
+  return createProgram(gl, vertexShader, fragmentShader);
+}
+
+	function Initialize()
+	{
+		var canvas = document.getElementById("canvas");
+
+		var gl = canvas.getContext("experimental-webgl");
+		 
+		// setup a GLSL program
+		var program = createProgramFromScripts(gl,"2d-vertex-shader", "2d-fragment-shader");
+		gl.useProgram(program);
+		 
+		// look up where the vertex data needs to go.
+		var positionLocation = gl.getAttribLocation(program, "a_position");
+		 
+		// Create a buffer and put a single clipspace rectangle in
+		// it (2 triangles)
+		var buffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.bufferData(
+		    gl.ARRAY_BUFFER,
+		    new Float32Array([
+		        -1.0, -1.0,
+		         1.0, -1.0,
+		        -1.0,  1.0,
+		        -1.0,  1.0,
+		         1.0, -1.0,
+		         1.0,  1.0]),
+		    gl.STATIC_DRAW);
+		gl.enableVertexAttribArray(positionLocation);
+		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+		 
+		// draw
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
+	}
+
+	</script>
+	<script id="2d-vertex-shader" type="x-shader/x-vertex">
+		attribute vec2 a_position;
+ 
+		void main() {
+  		gl_Position = vec4(a_position, 0, 1);
+		}
+	</script>
+ 
+	<script id="2d-fragment-shader" type="x-shader/x-fragment">
+		void main() {
+  		gl_FragColor = vec4(0, 1, 0, 1);  // green
+		}
+	</script>
+</head>
+<body onload='Initialize()'>
+
+<!-- <a href="javascript:Initialize()">click me</a> -->
+<canvas id="canvas" width="640" height="480" >
+
+
+</canvas>
+
+</body>
+</html>
