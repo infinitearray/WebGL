@@ -110,6 +110,51 @@ function createProgram(gl, vertexShader, fragmentShader) {
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 	}
 
+
+	function draw_lines()
+	{
+		var canvas = document.getElementById("canvas");
+
+		var gl = canvas.getContext("experimental-webgl");
+		 
+		// setup a GLSL program
+		var program = createProgramFromScripts(gl,"lines_vert", "lines_col");
+		gl.useProgram(program);
+		 
+		// look up where the vertex data needs to go.
+		var positionLocation = gl.getAttribLocation(program, "lines");
+		 
+		// Create a buffer and put a single clipspace rectangle in
+		// it (2 triangles)
+		var buffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.bufferData(
+		    gl.ARRAY_BUFFER,
+		    new Float32Array([
+		        -0.7, -0.7,
+		         0.7, -0.7,
+		        -0.7, -0.7,
+		        -0.7,  0.7,
+		        -0.7,  0.7,
+		         0.7,  0.7,
+		         0.7,  0.7,
+		         0.7, -0.7,
+		        -0.64,-0.64,
+		         0.64, -0.64,
+		        -0.64, -0.64,
+		        -0.64,  0.64,
+		        -0.64,  0.64,
+		         0.64,  0.64,
+		         0.64,  0.64,
+		         0.64, -0.64]),
+		    gl.STATIC_DRAW);
+		gl.enableVertexAttribArray(positionLocation);
+		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+		 
+		// draw
+		gl.drawArrays(gl.LINES, 0, 16);
+	}
+
 	function Initialize()
 	{
 		var canvas = document.getElementById("canvas");
@@ -143,7 +188,7 @@ function createProgram(gl, vertexShader, fragmentShader) {
 		// draw
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 		draw_board();
-
+		draw_lines();
 	}
 
 	</script>
@@ -170,9 +215,24 @@ function createProgram(gl, vertexShader, fragmentShader) {
  
 	<script id="board_col" type="x-shader/x-fragment">
 		void main() {
-  		gl_FragColor = vec4(1, 0.8, 0.6, 1); 
+  		gl_FragColor = vec4(1, 1, 0.7, 1); 
 		}
 	</script>
+
+	<script id="lines_vert" type="x-shader/x-vertex">
+		attribute vec2 lines;
+ 
+		void main() {
+  		gl_Position = vec4(lines, 0, 1);
+		}
+	</script>
+ 
+	<script id="lines_col" type="x-shader/x-fragment">
+		void main() {
+  		gl_FragColor = vec4(0,0,0, 1); 
+		}
+	</script>
+
 </head>
 <body onload='Initialize()'>
 
