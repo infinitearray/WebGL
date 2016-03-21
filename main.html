@@ -76,6 +76,39 @@ function createProgram(gl, vertexShader, fragmentShader) {
   var fragmentShader = createShaderFromScriptTag(gl, fragmentShaderId);
   return createProgram(gl, vertexShader, fragmentShader);
 }
+	function draw_board()
+	{
+		var canvas = document.getElementById("canvas");
+
+		var gl = canvas.getContext("experimental-webgl");
+		 
+		// setup a GLSL program
+		var program = createProgramFromScripts(gl,"board_vert", "board_col");
+		gl.useProgram(program);
+		 
+		// look up where the vertex data needs to go.
+		var positionLocation = gl.getAttribLocation(program, "board");
+		 
+		// Create a buffer and put a single clipspace rectangle in
+		// it (2 triangles)
+		var buffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.bufferData(
+		    gl.ARRAY_BUFFER,
+		    new Float32Array([
+		        -0.9, -0.9,
+		         0.9, -0.9,
+		        -0.9,  0.9,
+		        -0.9,  0.9,
+		         0.9, -0.9,
+		         0.9,  0.9]),
+		    gl.STATIC_DRAW);
+		gl.enableVertexAttribArray(positionLocation);
+		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+		 
+		// draw
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
+	}
 
 	function Initialize()
 	{
@@ -109,6 +142,8 @@ function createProgram(gl, vertexShader, fragmentShader) {
 		 
 		// draw
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
+		draw_board();
+
 	}
 
 	</script>
@@ -119,17 +154,30 @@ function createProgram(gl, vertexShader, fragmentShader) {
   		gl_Position = vec4(a_position, 0, 1);
 		}
 	</script>
- 
 	<script id="2d-fragment-shader" type="x-shader/x-fragment">
 		void main() {
-  		gl_FragColor = vec4(0, 1, 0, 1);  // green
+  		gl_FragColor = vec4(0.8, 0.6, 0.4, 1); 
+		}
+	</script>
+	
+	<script id="board_vert" type="x-shader/x-vertex">
+		attribute vec2 board;
+ 
+		void main() {
+  		gl_Position = vec4(board, 0, 1);
+		}
+	</script>
+ 
+	<script id="board_col" type="x-shader/x-fragment">
+		void main() {
+  		gl_FragColor = vec4(1, 0.8, 0.6, 1); 
 		}
 	</script>
 </head>
 <body onload='Initialize()'>
 
 <!-- <a href="javascript:Initialize()">click me</a> -->
-<canvas id="canvas" width="640" height="480" >
+<canvas id="canvas" width="600" height="600" >
 
 
 </canvas>
