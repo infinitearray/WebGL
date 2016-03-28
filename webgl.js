@@ -76,6 +76,42 @@ function createProgramFromScripts(gl, vertexShaderId, fragmentShaderId) {
   return createProgram(gl, vertexShader, fragmentShader);
 }
 
+function makeXRotation(angleInRadians) {
+  var c = Math.cos(angleInRadians);
+  var s = Math.sin(angleInRadians);
+
+  return [
+    1, 0, 0, 0,
+    0, c, s, 0,
+    0, -s, c, 0,
+    0, 0, 0, 1
+  ];
+};
+
+function makeYRotation(angleInRadians) {
+  var c = Math.cos(angleInRadians);
+  var s = Math.sin(angleInRadians);
+
+  return [
+    c, 0, -s, 0,
+    0, 1, 0, 0,
+    s, 0, c, 0,
+    0, 0, 0, 1
+  ];
+};
+
+function makeZRotation(angleInRadians) {
+  var c = Math.cos(angleInRadians);
+  var s = Math.sin(angleInRadians);
+
+  return [
+     c, s, 0, 0,
+    -s, c, 0, 0,
+     0, 0, 1, 0,
+     0, 0, 0, 1,
+  ];
+}
+
 function Initialize()
 {
 	canvas = document.getElementById("canvas");
@@ -95,26 +131,45 @@ function Initialize()
     254,  240,  195,  1.0    // white
   ];
   var border_col = [
-    0, 0, 0, 1.0,
-    0, 0, 0, 1.0,
-    0, 0, 0, 1.0,
-    0, 0, 0, 1.0,
-    0, 0, 0, 1.0,
-    0, 0, 0, 1.0
+    102,38,13,1.0,
+    102,38,13,1.0,
+    102,38,13,1.0,
+    102,38,13,1.0,
+    102,38,13,1.0,
+    102,38,13,1.0
   ];
-  drawCube('boardbase', {'x':0, 'y':0, 'z':0}, 2, 2, 2, color);
-  drawCube('border1', {'x':-0.94, 'y':0, 'z':0}, 0.12, 2, 2, border_col);
-  drawCube('border2', {'x':0.94, 'y':0, 'z':0}, 0.12, 2, 2, border_col);
-  drawCube('border3', {'x':0, 'y':-0.94, 'z':0}, 2, 2, 0.12, border_col);
-  drawCube('border4', {'x':0, 'y':0.94, 'z':0}, 2, 2, 0.12, border_col);
+  drawCube('boardbase', {'x':0, 'y':0, 'z':0}, 2, 0.2, 2, color,1);
+  //borders
+  drawCube('border1', {'x':-0.94, 'y':0, 'z':0}, 0.12, 0.2, 2, border_col,1);
+  drawCube('border2', {'x':0.94, 'y':0, 'z':0}, 0.12, 0.2, 2, [102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0],1);
+  drawCube('border3', {'x':0, 'y':-0.94, 'z':0}, 2, 0.2, 0.12, [102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0],1);
+  drawCube('border4', {'x':0, 'y':0.94, 'z':0}, 2, 0.2, 0.12, [102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0,102,38,13,1.0],1);
+  //striking borders
+  drawCube('inborder1', {'x':-0.64, 'y':0, 'z':0}, 0.1, 0.2, 1.38, border_col,0);
+  drawCube('inborder2', {'x':0.64, 'y':0, 'z':0}, 0.1, 0.2, 1.38, border_col,0);
+  drawCube('inborder3', {'x':0, 'y':-0.64, 'z':0}, 1.38, 0.2, 0.1, border_col,0);
+  drawCube('inborder4', {'x':0, 'y':0.64, 'z':0}, 1.38, 0.2, 0.1, border_col,0);
   var color2 = [
     0, 0, 0, 1.0
   ];
+  var col = [
+    200, 0, 0, 1.0
+  ];
+  //bord_centers
+  drawCylinder('c1', {'x':-0.64, 'y':0.64, 'z':0}, 0.045, 0.1, [200,0,0,1], 50,1);
+  drawCylinder('c2', {'x':0.64, 'y':0.64, 'z':0}, 0.045, 0.1, [200,0,0,1], 50,1);
+  drawCylinder('c3', {'x':0.64, 'y':-0.64, 'z':0}, 0.045, 0.1, [200,0,0,1], 50,1);
+  drawCylinder('c4', {'x':-0.64, 'y':-0.64, 'z':0}, 0.045, 0.1,[200,0,0,1], 50,1);
+  //center
+  drawCylinder('center', {'x':0, 'y':0, 'z':0}, 0.2, 0.1, color2, 12,0);
+  //coins
+  drawCylinder('redc', {'x':0, 'y':0, 'z':0}, 0.04, 0.1,[200,0,0,1], 50,1);
 
-  drawCylinder('corner1', {'x':-0.8, 'y':0.8, 'z':0}, 0.06, 1, color2, 50);
-  drawCylinder('corner2', {'x':0.8, 'y':0.8, 'z':0}, 0.06, 1, color2, 50);
-  drawCylinder('corner3', {'x':0.8, 'y':-0.8, 'z':0}, 0.06, 1, color2, 50);
-  drawCylinder('corner4', {'x':-0.8, 'y':-0.8, 'z':0}, 0.06, 1, color2, 50);
+  //holes
+  drawCylinder('corner1', {'x':-0.8, 'y':0.8, 'z':0}, 0.06, 0.1, color2, 50,1);
+  drawCylinder('corner2', {'x':0.8, 'y':0.8, 'z':0}, 0.06, 0.1, color2, 50,1);
+  drawCylinder('corner3', {'x':0.8, 'y':-0.8, 'z':0}, 0.06, 0.1, color2, 50,1);
+  drawCylinder('corner4', {'x':-0.8, 'y':-0.8, 'z':0}, 0.06, 0.1, color2, 50,1);
 
   setInterval(drawScene, 50);
 }
@@ -123,7 +178,7 @@ function drawScene(){
   console.log('yo');
 }
 
-function drawCube(name, center, length, width, height, colors){
+function drawCube(name, center, length, width, height, colors, variable){
   for (var i = 0; i < colors.length; i++) {
     if (i%4 != 3){
       colors[i] /= 255.0;
@@ -194,6 +249,18 @@ function drawCube(name, center, length, width, height, colors){
     center.x+(length/2.0), center.y-(height/2.0),  center.z+(width/2.0),
     center.x-(length/2.0), center.y-(height/2.0),  center.z+(width/2.0)
   ];
+  //rotate in x
+  // for(var i=0;i<vertices.length;i++)
+  // {
+  //   if(i%3==1)
+  //   {
+  //     vertices[i]=vertices[i]*Math.cos(3.14/6.0)+vertices[i+1]*Math.sin(3.14/6.0);
+  //   }
+  //   if(i%3==2)
+  //   {
+  //     vertices[i]=-vertices[i]*Math.sin(3.14/6.0)+vertices[i+1]*Math.cos(3.14/6.0);
+  //   }
+  // }
   var buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -201,13 +268,17 @@ function drawCube(name, center, length, width, height, colors){
   gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
   // draw
-  gl.drawArrays(gl.TRIANGLES, 0, 6*6);
+  if(variable==1)
+    gl.drawArrays(gl.TRIANGLES, 0, 6*6);
+  else {
+    gl.drawArrays(gl.LINES, 0, 6*6);
+  }
 
   var object = {'colors':colors, 'center':center, 'height':height, 'width':width,'length':length};
   cubes[name] = object;
 }
 
-function drawCylinder(name, center, radius, height, color, triangles){
+function drawCylinder(name, center, radius, height, color, triangles, variable){
 
   color[0]/=255.0;
   color[1]/=255.0;
@@ -282,9 +353,20 @@ function drawCylinder(name, center, radius, height, color, triangles){
     vertices.push(center.x + radius*Math.cos(current_angle+angle));
     vertices.push(center.y + radius*Math.sin(current_angle+angle));
     vertices.push(center.z-height/2.0);
-    vertices.push();
     current_angle += angle;
   }
+  //rotate in x
+  // for(var i=0;i<vertices.length;i++)
+  // {
+  //   if(i%3==1)
+  //   {
+  //     vertices[i]=vertices[i]*Math.cos(3.14/6.0)+vertices[i+1]*Math.sin(3.14/6.0);
+  //   }
+  //   if(i%3==2)
+  //   {
+  //     vertices[i]=-vertices[i]*Math.sin(3.14/6.0)+vertices[i+1]*Math.cos(3.14/6.0);
+  //   }
+  // }
 
   var buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -293,7 +375,11 @@ function drawCylinder(name, center, radius, height, color, triangles){
   gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
   // draw
-  gl.drawArrays(gl.TRIANGLES, 0, 4*3*triangles);
+  if(variable==1)
+    gl.drawArrays(gl.TRIANGLES, 0, 4*3*triangles);
+  else {
+    gl.drawArrays(gl.LINES, 0, 4*3*triangles);
+  }
 
   var object = {'colors':colors, 'center':center, 'radius':radius,'height':height};
   cylinders[name] = object;

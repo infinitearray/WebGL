@@ -7,14 +7,16 @@
 	<script id="2d-vertex-shader" type="x-shader/x-vertex">
 		attribute vec2 a_position;
     attribute vec4 a_color;
- 
+
+		uniform mat4 u_matrix;
+
     varying lowp vec4 vColor;
 		void main() {
   		gl_Position = vec4(a_position, 0, 1);
       vColor = a_color;
 		}
 	</script>
- 
+
 	<script id="2d-fragment-shader" type="x-shader/x-fragment">
     varying lowp vec4 vColor;
 		void main() {
