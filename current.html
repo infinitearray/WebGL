@@ -29,9 +29,9 @@ function main()
 {
   // Get A WebGL context
   var canvas = document.getElementById("canvas");
-  var mousex,mousey,strikerx,strikery,velX,velY;
-  var clicks=0,thrust=5;
-  var move;
+  var mousex,mousey,strikerx=0,strikery=0,velX=0,velY=0;
+  var clicks=0,thrust=5,finalMouseX,finalMouseY;
+  var move=false,dist=0,setPosition=false;
   var gl = getWebGLContext(canvas);
   if (!gl)
   {
@@ -113,18 +113,29 @@ function main()
       }
   canvas.addEventListener('mousemove', function(event) {
   var mousePos = getMousePos(canvas, event);
-  document.getElementById('myDiv').innerHTML = mousePos.x;
+  document.getElementById('myDiv').innerHTML = mousePos.x+' '+mousePos.y;
   mousex = mousePos.x;
   mousey = mousePos.y;
+    finalMouseX=mousex;
+    finalMouseY=mousey;
   });
   canvas.addEventListener('click', function(event) {
     clicks+=1;
-    if(clicks>0 && clicks%2==0)
-      move=true;
-    else {
-      move = false;
+    if(clicks%2==0)
+    {
+        strikerx = 190+(mousex*220)/600.0;
+        strikery = 190;
     }
+  });   
+    
+addEventListener('keydown', function (event) {
+      if(event.keyCode==70)
+      {
+          move=true;
+      }
   });
+    
+    
   setInterval(drawScene, 10);
 
   // addEventListener('keydown', function (event) {
@@ -288,30 +299,35 @@ function main()
     matrix = computematrix([54,450-10,150+10],rotation,scale);
     drawObject(matrix,vpmatrix,positions,colors,216,1);
     //For striker
-    strikery = 190;
-    if(clicks%2==0)
+    if(clicks%2==0 && setPosition==false)
     {
-      strikerx = 190+(mousex*220)/600.0;
+        strikerx = 190+(mousex*220)/600.0;
+        strikery = 190;
     }
-    else
-    {
-      if(move==false)
-      {
-      var tx = mousex - strikerx,
-       ty = mousey - strikery,
-       dist = Math.sqrt(tx*tx+ty*ty),
-       rad = Math.atan2(ty,tx)-2.35,
-       angle = rad/Math.PI * 180;
-       velX = (tx/dist)*Math.cos(rad);
-       velY = (ty/dist)*Math.sin(rad);
-     }
-
-      if(dist>1 && move==true){
-        strikerx += velX;
-        strikery += velY;
-        document.getElementById('myDiv').innerHTML = strikery;
-      }
-    }
+    if(move==true)
+        {
+            setPosition=true;
+            var tx = finalMouseX - strikerx, ty = finalMouseY - strikery;
+            console.log('mouse',finalMouseX,finalMouseY);
+            dist = Math.sqrt(tx*tx+ty*ty);
+            var rad = Math.atan2(ty,tx),
+            angle = rad/Math.PI * 180;
+            velX = (dist/10)*Math.cos(rad);
+            velY = (dist/10)*Math.sin(rad);
+            console.log(dist,velX,velY);
+            if(dist>1)
+            {
+                strikerx += velX;
+                strikery += velY;
+                document.getElementById('myDiv').innerHTML = strikerx+' '+strikery;
+            }
+            if(dist<1)
+                {
+                    setPosition=false;
+                    move=false;
+                }
+        }
+      
     positions = getvertices_cylinder(10,10,18);
     colors = getcolors_cylinder([3,120,213]);
     matrix = computematrix([44,strikery,strikerx],rotation,scale);
@@ -656,3 +672,4 @@ function getvertices_cylinder(R,H,n)
   </div>
 </div>
 </body></html>
+
