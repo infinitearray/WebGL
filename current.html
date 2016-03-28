@@ -29,6 +29,9 @@ function main()
 {
   // Get A WebGL context
   var canvas = document.getElementById("canvas");
+  var mousex,mousey,strikerx,strikery,velX,velY;
+  var clicks=0,thrust=5;
+  var move;
   var gl = getWebGLContext(canvas);
   if (!gl)
   {
@@ -50,7 +53,7 @@ function main()
 
   // Create a buffer.
   var obj;
-  function drawObject(matrix,vpmatrix,positions,colors,variable)
+  function drawObject(matrix,vpmatrix,positions,colors,cnt_vertices,variable)
   {
     // setup GLSL program
 
@@ -79,9 +82,9 @@ function main()
 
     // Draw the geometry.
     if(variable==1)
-      gl.drawArrays(gl.TRIANGLES, 0, 36);
+      gl.drawArrays(gl.TRIANGLES, 0, cnt_vertices);
     else
-      gl.drawArrays(gl.LINES, 0, 36);
+      gl.drawArrays(gl.LINES, 0, cnt_vertices);
   }
 
   function radToDeg(r)
@@ -100,7 +103,28 @@ function main()
   var cameraAngleRadians = degToRad(0);
   var fieldOfViewRadians = degToRad(60);
   //drawScene();
-
+  var canvas = document.getElementById('canvas');
+  function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+  canvas.addEventListener('mousemove', function(event) {
+  var mousePos = getMousePos(canvas, event);
+  document.getElementById('myDiv').innerHTML = mousePos.x;
+  mousex = mousePos.x;
+  mousey = mousePos.y;
+  });
+  canvas.addEventListener('click', function(event) {
+    clicks+=1;
+    if(clicks>0 && clicks%2==0)
+      move=true;
+    else {
+      move = false;
+    }
+  });
   setInterval(drawScene, 10);
 
   // addEventListener('keydown', function (event) {
@@ -212,39 +236,86 @@ function main()
     var matrix = computematrix([50,300,300],rotation,scale);
     var positions = getvertices_cuboid(10,300,300);
     var colors=getcolors_cuboid([254, 240, 195]);
-    drawObject(matrix,vpmatrix,positions,colors,1);
+    drawObject(matrix,vpmatrix,positions,colors,36,1);
 
     //For borders
     positions = getvertices_cuboid(20,20,340);
     colors = getcolors_cuboid([102,38,13]);
     //For left border
     matrix = computematrix([50,300,450+10],rotation,scale);
-    drawObject(matrix,vpmatrix,positions,colors,1);
+    drawObject(matrix,vpmatrix,positions,colors,36,1);
     //For right border
     matrix = computematrix([50,300,150-10],rotation,scale);
-    drawObject(matrix,vpmatrix,positions,colors,1);
+    drawObject(matrix,vpmatrix,positions,colors,36,1);
     //For top border
     matrix = computematrix([50,450+10,300],[degToRad(90),0,0],scale);
-    drawObject(matrix,vpmatrix,positions,colors,1);
+    drawObject(matrix,vpmatrix,positions,colors,36,1);
     //For bottom border
     matrix = computematrix([50,150-10,300],[degToRad(90),0,0],scale);
-    drawObject(matrix,vpmatrix,positions,colors,1);
+    drawObject(matrix,vpmatrix,positions,colors,36,1);
 
     //For striker borders
     positions = getvertices_cuboid(12,20,240);
     colors = getcolors_cuboid([0,0,0]);
     //For left border
     matrix = computematrix([50,300,400+10],rotation,scale);
-    drawObject(matrix,vpmatrix,positions,colors,0);
+    drawObject(matrix,vpmatrix,positions,colors,36,0);
     //For right border
     matrix = computematrix([50,300,200-10],rotation,scale);
-    drawObject(matrix,vpmatrix,positions,colors,0);
+    drawObject(matrix,vpmatrix,positions,colors,36,0);
     //For top border
     matrix = computematrix([50,400+10,300],[degToRad(90),0,0],scale);
-    drawObject(matrix,vpmatrix,positions,colors,0);
+    drawObject(matrix,vpmatrix,positions,colors,36,0);
     //For bottom border
     matrix = computematrix([50,200-10,300],[degToRad(90),0,0],scale);
-    drawObject(matrix,vpmatrix,positions,colors,0);
+    drawObject(matrix,vpmatrix,positions,colors,36,0);
+
+    //For center
+    positions = getvertices_cylinder(40,20,12);
+    colors = getcolors_cylinder([0,0,0]);
+    matrix = computematrix([54,300,300],rotation,scale);
+    drawObject(matrix,vpmatrix,positions,colors,144,0);
+    //For holes
+    positions = getvertices_cylinder(12,20,18);
+    colors = getcolors_cylinder([0,0,0]);
+
+    matrix = computematrix([54,450-10,450-10],rotation,scale);
+    drawObject(matrix,vpmatrix,positions,colors,216,1);
+    matrix = computematrix([54,150+10,450-10],rotation,scale);
+    drawObject(matrix,vpmatrix,positions,colors,216,1);
+    matrix = computematrix([54,150+10,150+10],rotation,scale);
+    drawObject(matrix,vpmatrix,positions,colors,216,1);
+    matrix = computematrix([54,450-10,150+10],rotation,scale);
+    drawObject(matrix,vpmatrix,positions,colors,216,1);
+    //For striker
+    strikery = 190;
+    if(clicks%2==0)
+    {
+      strikerx = 190+(mousex*220)/600.0;
+    }
+    else
+    {
+      if(move==false)
+      {
+      var tx = mousex - strikerx,
+       ty = mousey - strikery,
+       dist = Math.sqrt(tx*tx+ty*ty),
+       rad = Math.atan2(ty,tx)-2.35,
+       angle = rad/Math.PI * 180;
+       velX = (tx/dist)*Math.cos(rad);
+       velY = (ty/dist)*Math.sin(rad);
+     }
+
+      if(dist>1 && move==true){
+        strikerx += velX;
+        strikery += velY;
+        document.getElementById('myDiv').innerHTML = strikery;
+      }
+    }
+    positions = getvertices_cylinder(10,10,18);
+    colors = getcolors_cylinder([3,120,213]);
+    matrix = computematrix([44,strikery,strikerx],rotation,scale);
+    drawObject(matrix,vpmatrix,positions,colors,216,1);
   }
 }
 
@@ -307,6 +378,19 @@ function getcolors_cuboid(col)
   }
   return colors;
 }
+
+function getcolors_cylinder(col)
+{
+  var colors = new Uint8Array(648);
+  for(var i=0;i<648;i+=3)
+  {
+    colors[i]=col[0];
+    colors[i+1]=col[1];
+    colors[i+2]=col[2];
+  }
+  return colors;
+}
+
 
 function makeTranslation(tx, ty, tz) {
   return [
@@ -474,6 +558,62 @@ function getvertices_cuboid(L,B,H)
     ]);
 }
 
+function getvertices_cylinder(R,H,n)
+{
+  function degToRad(d)
+  {
+    return d * Math.PI / 180;
+  }
+  var vertices = new Float32Array(36*n);
+  var addangle = 360/n;
+  var angle = 0;
+  var pointer = 0;
+  for(var i=0;i<n;i+=1)
+  {
+    vertices[pointer+0] = -H/2;
+    vertices[pointer+1] = 0;
+    vertices[pointer+2] = 0;
+    vertices[pointer+3] = -H/2;
+    vertices[pointer+4] = R*Math.sin(degToRad(angle));
+    vertices[pointer+5] = R*Math.cos(degToRad(angle));
+    vertices[pointer+6] = -H/2;
+    vertices[pointer+7] = R*Math.sin(degToRad(angle+addangle));
+    vertices[pointer+8] = R*Math.cos(degToRad(angle+addangle));
+
+    vertices[pointer+9] = H/2;
+    vertices[pointer+10] = 0;
+    vertices[pointer+11] = 0;
+    vertices[pointer+12] = H/2;
+    vertices[pointer+13] = R*Math.sin(degToRad(angle));
+    vertices[pointer+14] = R*Math.cos(degToRad(angle));
+    vertices[pointer+15] = H/2;
+    vertices[pointer+16] = R*Math.sin(degToRad(angle+addangle));
+    vertices[pointer+17] = R*Math.cos(degToRad(angle+addangle));
+
+    vertices[pointer+18] = vertices[pointer+3];
+    vertices[pointer+19] = vertices[pointer+4];
+    vertices[pointer+20] = vertices[pointer+5];
+    vertices[pointer+21] = vertices[pointer+6];
+    vertices[pointer+22] = vertices[pointer+7];
+    vertices[pointer+23] = vertices[pointer+8];
+    vertices[pointer+24] = vertices[pointer+12];
+    vertices[pointer+25] = vertices[pointer+13];
+    vertices[pointer+26] = vertices[pointer+14];
+
+    vertices[pointer+27] = vertices[pointer+12];
+    vertices[pointer+28] = vertices[pointer+13];
+    vertices[pointer+29] = vertices[pointer+14];
+    vertices[pointer+30] = vertices[pointer+15];
+    vertices[pointer+31] = vertices[pointer+16];
+    vertices[pointer+32] = vertices[pointer+17];
+    vertices[pointer+33] = vertices[pointer+6];
+    vertices[pointer+34] = vertices[pointer+7];
+    vertices[pointer+35] = vertices[pointer+8];
+    pointer += 36;
+    angle += addangle;
+  }
+  return vertices;
+}
 // Fill the buffer with colors for the 'F'.
 </script>
 <!-- vertex shader -->
@@ -507,7 +647,9 @@ function getvertices_cuboid(L,B,H)
 </script>
 </head>
 <body>
+
 <canvas id="canvas" width="600" height="600"></canvas>
+<p id="myDiv"></p>
 <div id="uiContainer">
   <div id="ui">
     <div id="cameraAngle"><div class="gman-slider-outer"><div class="gman-slider-upper"><div class="gman-slider-label">cameraAngle</div><div class="gman-slider-value">-360</div></div><div class="gman-slider-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all"><a style="left: 0%;" class="ui-slider-handle ui-state-default ui-corner-all ui-state-focus" href="#"></a></div></div></div>
