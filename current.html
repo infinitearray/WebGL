@@ -361,6 +361,7 @@ function main()
       console.log('Collision');
       conserve_mom('striker','red');
     }
+    check_bord_coll('red',8);
     centers['red']['x'] += centers['red']['vx']/10;
     centers['red']['y'] += centers['red']['vy']/10;
     //For striker
@@ -423,6 +424,26 @@ function makePerspective(fieldOfViewInRadians, aspect, near, far) {
 			0, 0, near * far * rangeInv * 2, 0
 	];
 };
+
+function check_bord_coll(obj,rad) {
+  var dx=centers[obj]['x'],dy=centers[obj]['y'];
+  if(dx>=450-rad)
+  {
+      centers[obj]['vx']*=-1;
+  }
+  if(dy>=450-rad)
+  {
+    centers[obj]['vy']*=-1;
+  }
+  if(dx<=150+rad)
+  {
+    centers[obj]['vx']*=-1;
+  }
+  if(dy<=150+rad)
+  {
+    centers[obj]['vy']*=-1;
+  }
+}
 
 function getcolors_cuboid(col)
 {
@@ -531,17 +552,17 @@ function conserve_mom(obj1,obj2)
   var direction_2 = Math.atan2(y2,x2);
   var m1=centers[obj1]['m'],m2=centers[obj2]['m'];
 
-  var newx1 = speed1 * Math.Cos(direction_1 - collisionision_angle);
-  var newy1 = speed1 * Math.Sin(direction_1 - collisionision_angle);
-  var newx2 = speed2 * Math.Cos(direction_2 - collisionision_angle);
-  var newy2 = speed2 * Math.Sin(direction_2 - collisionision_angle);
+  var newx1 = speed1 * Math.cos(direction_1 - collisionision_angle);
+  var newy1 = speed1 * Math.sin(direction_1 - collisionision_angle);
+  var newx2 = speed2 * Math.cos(direction_2 - collisionision_angle);
+  var newy2 = speed2 * Math.sin(direction_2 - collisionision_angle);
 
   var finx1 = ((m1-m2)*newx1 + (m2+m2)*newx2)/(m1+m2);
   var finx2 = ((m1+m1)*newx1 + (m2-m1)*newx2)/(m1+m2);
   var finy1 = newy1;
   var finy2 = newy2;
-  var cosAngle = Math.Cos(collisionision_angle);
-  var sinAngle = Math.Sin(collisionision_angle);
+  var cosAngle = Math.cos(collisionision_angle);
+  var sinAngle = Math.sin(collisionision_angle);
   centers[obj1]['vx']=cosAngle*finx1 - sinAngle*finy1;
   centers[obj1]['vy']=sinAngle*finx1 + cosAngle*finy1;
   centers[obj2]['vx']=cosAngle*finx2 - sinAngle*finy2;
@@ -640,9 +661,9 @@ function getvertices_cuboid(L,B,H)
 				L, -H, -B,
 				L, -H, -B,
 				L, -H,  B,
-				-L, -H,  B
+					-L, -H,  B
 
-					]);
+						]);
 }
 
 function getvertices_cylinder(R,H,n)
