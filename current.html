@@ -298,12 +298,13 @@ function main()
 			strikerx = 190+(mousex*220)/600.0;
 			strikery = 190;
 		}
-    positions = getvertices_cuboid(2,2,power*2);
-    colors = getvertices_cuboid([0,0,0]);
-    //matrix = computematrix([44,centers['striker']['y'],centers['striker']['x']],[(90-angle)*Math.PI/180,0,0],scale);
-    matrix = computematrix([44,centers['striker']['y']+power*Math.sin((angle*Math.PI)/180),centers['striker']['x']+power*Math.cos((angle*Math.PI)/180)],[(90-angle)*Math.PI/180,0,0],scale);
-    //matrix = computematrix([44,centers['striker']['y']+power*Math.cos(angle),centers['striker']['x']+power*Math.sin(angle)],[(90-angle)*Math.PI/180,0,0],scale);
-    drawObject(matrix,vpmatrix,positions,colors,36,1);
+    if(move==false && setPosition==false)
+    {
+      positions = getvertices_cuboid(2,2,power*2);
+      colors = getvertices_cuboid([0,0,0]);
+      matrix = computematrix([44,centers['striker']['y']+power*Math.sin((angle*Math.PI)/180),centers['striker']['x']+power*Math.cos((angle*Math.PI)/180)],[(90-angle)*Math.PI/180,0,0],scale);
+      drawObject(matrix,vpmatrix,positions,colors,36,1);
+    }
 		if(move==true)
 		{
 			setPosition=true;
