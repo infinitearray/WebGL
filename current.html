@@ -25,11 +25,12 @@ $(function()
 			main();
 		});
 var centers = {};
+var velX=0,velY=0;
 function main()
 {
 	// Get A WebGL context
 	var canvas = document.getElementById("canvas");
-	var mousex,mousey,strikerx=0,strikery=0,velX=0,velY=0;
+	var mousex,mousey,strikerx=0,strikery=0;
 	var clicks=0,thrust=5,finalMouseX,finalMouseY;
 	var move=false,dist=0,setPosition=false;
   //var centers = {};//extreme concept
@@ -315,8 +316,8 @@ function main()
 			dist = Math.sqrt(tx*tx+ty*ty);
 			var rad = Math.atan2(ty,tx), angle = (rad*180)/Math.PI;
 			//console.log(angle);
-			velX = (dist/10)*Math.cos(rad);
-			velY = (dist/10)*Math.sin(rad);
+			velX = (tx/dist)*5;
+			velY = (ty/dist)*5;
 			//console.log(dist,velX,velY);
 			move=false;
 		}
@@ -338,9 +339,9 @@ function main()
     }
 		if(dist>1)
 		{
-			strikerx += velX/10;
-			strikery += velY/10;
-			document.getElementById('myDiv').innerHTML = strikerx+' '+strikery;
+			strikerx += velX;
+			strikery += velY;
+			document.getElementById('myDiv').innerHTML = velX+' '+velY;
 		}
 		if(dist<1)
 		{
@@ -350,7 +351,8 @@ function main()
     centers['striker']['x']=strikerx;
     centers['striker']['y']=strikery;
     centers['striker']['vx']=velX,centers['striker']['vy']=velY;
-
+    //
+    apply_friction();
     //For collision with striker red coin
     var atx=centers['striker']['x']-centers['red']['x'];
     var aty=centers['striker']['y']-centers['red']['y'];
@@ -362,8 +364,8 @@ function main()
       conserve_mom('striker','red');
     }
     check_bord_coll('red',8);
-    centers['red']['x'] += centers['red']['vx']/10;
-    centers['red']['y'] += centers['red']['vy']/10;
+    centers['red']['x'] += centers['red']['vx'];
+    centers['red']['y'] += centers['red']['vy'];
     //For striker
     positions = getvertices_cylinder(10,10,18);
 		colors = getcolors_cylinder([3,120,213]);
@@ -395,6 +397,34 @@ function makeLookAt(cameraPosition, target, up) {
 
 function subtractVectors(a, b) {
 	return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function apply_friction()
+{
+  if(centers['red']['vx']>0)
+    centers['red']['vx']-=0.01;
+  if(centers['red']['vy']>0)
+    centers['red']['vy']-=0.01;
+  if(centers['red']['vx']<0)
+    centers['red']['vx']+=0.01;
+  if(centers['red']['vy']<0)
+    centers['red']['vy']+=0.01;
+  if(Math.abs(centers['red']['vy'])<0.05)
+    centers['red']['vy']=0;
+  if(Math.abs(centers['red']['vx'])<0.05)
+    centers['red']['vx']=0;
+  if(velX>0)
+    velX-=0.01;
+  if(velY>0)
+    velY-=0.01;
+  if(velX<0)
+    velX+=0.01;
+  if(velY<0)
+    velY+=0.01;
+  if(Math.abs(velX)<0.05)
+    velX=0;
+  if(Math.abs(velY)<0.05)
+    velY=0;
 }
 
 function normalize(v) {
