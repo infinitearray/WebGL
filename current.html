@@ -310,11 +310,13 @@ addEventListener('keydown', function (event) {
             var tx = finalMouseX - strikerx, ty = finalMouseY - strikery;
             console.log('mouse',finalMouseX,finalMouseY);
             dist = Math.sqrt(tx*tx+ty*ty);
-            var rad = Math.atan2(ty,tx),
-            angle = rad/Math.PI * 180;
+            var rad = Math.atan2(ty,tx), angle = (rad*180)/Math.PI;
+            console.log(angle);
             velX = (dist/10)*Math.cos(rad);
             velY = (dist/10)*Math.sin(rad);
             console.log(dist,velX,velY);
+            move=false;
+        }   
             if(dist>1)
             {
                 strikerx += velX;
@@ -326,7 +328,6 @@ addEventListener('keydown', function (event) {
                     setPosition=false;
                     move=false;
                 }
-        }
       
     positions = getvertices_cylinder(10,10,18);
     colors = getcolors_cylinder([3,120,213]);
@@ -672,4 +673,3 @@ function getvertices_cylinder(R,H,n)
   </div>
 </div>
 </body></html>
-
