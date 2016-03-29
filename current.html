@@ -32,6 +32,9 @@ function main()
 	var mousex,mousey,strikerx=0,strikery=0,velX=0,velY=0;
 	var clicks=0,thrust=5,finalMouseX,finalMouseY;
 	var move=false,dist=0,setPosition=false;
+  var centers = {};//extreme concept
+  centers['striker']={'x':strikerx,'y':strikery};
+  centers['red']={'x':300,'y':300};
 	var gl = getWebGLContext(canvas);
 	if (!gl)
 	{
@@ -308,13 +311,13 @@ function main()
 		{
 			setPosition=true;
 			var tx = finalMouseX - strikerx, ty = finalMouseY - strikery;
-			console.log('mouse',finalMouseX,finalMouseY);
+			//console.log('mouse',finalMouseX,finalMouseY);
 			dist = Math.sqrt(tx*tx+ty*ty);
 			var rad = Math.atan2(ty,tx), angle = (rad*180)/Math.PI;
-			console.log(angle);
+			//console.log(angle);
 			velX = (dist/10)*Math.cos(rad);
 			velY = (dist/10)*Math.sin(rad);
-			console.log(dist,velX,velY);
+			//console.log(dist,velX,velY);
 			move=false;
 		}
     if(strikerx>=450-10)
@@ -344,10 +347,26 @@ function main()
 			setPosition=false;
 			move=false;
 		}
-
+    centers['striker']['x']=strikerx;
+    centers['striker']['y']=strikery;
 		positions = getvertices_cylinder(10,10,18);
 		colors = getcolors_cylinder([3,120,213]);
 		matrix = computematrix([44,strikery,strikerx],rotation,scale);
+		drawObject(matrix,vpmatrix,positions,colors,216,1);
+    //For collision with striker red coin
+    var atx=centers['striker']['x']-centers['red']['x'];
+    var aty=centers['striker']['y']-centers['red']['y'];
+    var adist=Math.sqrt(atx*atx+aty*aty);
+    if(adist<=10+8)
+    {
+      //update the velocities
+      console.log('Collision');
+    }
+
+    //For red coin
+    positions = getvertices_cylinder(8,10,18);
+		colors = getcolors_cylinder([255,0,0]);
+		matrix = computematrix([44,centers['red']['y'],centers['red']['x']],rotation,scale);
 		drawObject(matrix,vpmatrix,positions,colors,216,1);
 	}
 }
