@@ -26,6 +26,8 @@ $(function()
 		});
 var centers = {};
 var velX=0,velY=0;
+var coins;
+var power=20,angle=45;
 function main()
 {
 	// Get A WebGL context
@@ -34,8 +36,17 @@ function main()
 	var clicks=0,thrust=5,finalMouseX,finalMouseY;
 	var move=false,dist=0,setPosition=false;
   //var centers = {};//extreme concept
-  centers['striker']={'x':strikerx,'y':strikery,'m':10*10,'vx':0,'vy':0};
-  centers['red']={'x':300,'y':300,'m':8*8,'vx':0,'vy':0};
+  centers['striker']={'x':strikerx,'y':strikery,'m':10*10,'vx':0,'vy':0,'r':10};
+  centers['red']={'x':300,'y':300,'m':8*8,'vx':0,'vy':0,'r':8};
+  centers['white1']={'x':268,'y':300,'m':8*8,'vx':0,'vy':0,'r':8};
+  centers['white2']={'x':332,'y':300,'m':8*8,'vx':0,'vy':0,'r':8};
+  centers['white3']={'x':300,'y':332,'m':8*8,'vx':0,'vy':0,'r':8};
+  centers['white4']={'x':300,'y':268,'m':8*8,'vx':0,'vy':0,'r':8};
+  centers['black1']={'x':322,'y':278,'m':8*8,'vx':0,'vy':0,'r':8};
+  centers['black2']={'x':278,'y':278,'m':8*8,'vx':0,'vy':0,'r':8};
+  centers['black3']={'x':278,'y':322,'m':8*8,'vx':0,'vy':0,'r':8};
+  centers['black4']={'x':322,'y':322,'m':8*8,'vx':0,'vy':0,'r':8};
+  coins = ['striker','red','white1','white2','white3','white4','black1','black2','black3','black4']
 	var gl = getWebGLContext(canvas);
 	if (!gl)
 	{
@@ -117,7 +128,7 @@ function main()
 	}
 	canvas.addEventListener('mousemove', function(event) {
 		var mousePos = getMousePos(canvas, event);
-		document.getElementById('myDiv').innerHTML = mousePos.x+' '+mousePos.y;
+		//document.getElementById('myDiv').innerHTML = mousePos.x+' '+mousePos.y;
 		mousex = mousePos.x;
 		mousey = mousePos.y;
 		finalMouseX=mousex;
@@ -131,7 +142,28 @@ function main()
 			strikery = 190;
 		}
 	});
-
+  addEventListener('keydown', function (event) {
+		if(event.keyCode==70)
+		{
+			move=true;
+		}
+        if(event.keyCode==37)
+            {
+                angle-=1;
+            }
+        if(event.keyCode==39)
+            {
+                angle+=1;
+            }
+                if(event.keyCode==38)
+            {
+                power+=1;
+            }
+                if(event.keyCode==40)
+            {
+                power-=1;
+            }
+	});
 	addEventListener('keydown', function (event) {
 		if(event.keyCode==70)
 		{
@@ -241,7 +273,7 @@ function main()
 		var up = [0, 1, 0];
 		// console.log(cameraPosition);
 		// Compute the camera's matrix using look at.
-		var cameraMatrix = makeLookAt([-350,-300,300], [0,300,300], up);
+		var cameraMatrix = makeLookAt([-350,300,300], [0,300,300], up);
 		// Make a view matrix from the camera matrix.
 		var viewMatrix = makeInverse(cameraMatrix);
 		var vpmatrix = matrixMultiply(viewMatrix,projectionMatrix);
@@ -292,7 +324,7 @@ function main()
 		drawObject(matrix,vpmatrix,positions,colors,144,0);
 		//For holes
 		positions = getvertices_cylinder(12,20,18);
-		colors = getcolors_cylinder([0,0,0]);
+		colors = getcolors_cylinder([148,138,84]);
 
 		matrix = computematrix([54,450-10,450-10],rotation,scale);
 		drawObject(matrix,vpmatrix,positions,colors,216,1);
@@ -312,15 +344,13 @@ function main()
 		{
 			setPosition=true;
 			var tx = finalMouseX - strikerx, ty = finalMouseY - strikery;
-			//console.log('mouse',finalMouseX,finalMouseY);
 			dist = Math.sqrt(tx*tx+ty*ty);
-			var rad = Math.atan2(ty,tx), angle = (rad*180)/Math.PI;
-			//console.log(angle);
-			velX = (tx/dist)*5;
-			velY = (ty/dist)*5;
-			//console.log(dist,velX,velY);
+      velX = power*Math.cos(angle*Math.PI/180)/5;
+      velY = power*Math.sin(angle*Math.PI/180)/5;
 			move=false;
 		}
+    document.getElementById('myDiv1').innerHTML = 'Angle '+': '+angle;
+    document.getElementById('myDiv2').innerHTML = 'Power : '+power;
     if(strikerx>=450-10)
     {
       velX=-velX;
@@ -341,7 +371,7 @@ function main()
 		{
 			strikerx += velX;
 			strikery += velY;
-			document.getElementById('myDiv').innerHTML = velX+' '+velY;
+			//document.getElementById('myDiv').innerHTML = velX+' '+velY;
 		}
 		if(dist<1)
 		{
@@ -353,15 +383,21 @@ function main()
     centers['striker']['vx']=velX,centers['striker']['vy']=velY;
     //
     apply_friction();
-    //For collision with striker red coin
-    var atx=centers['striker']['x']-centers['red']['x'];
-    var aty=centers['striker']['y']-centers['red']['y'];
-    var adist=Math.sqrt(atx*atx+aty*aty);
-    if(adist<=10+8)
+    //For collisions between coins and striker
+    for(var i=0;i<coins.length;i++)
     {
-      //update the velocities
-      console.log('Collision');
-      conserve_mom('striker','red');
+      for(var j=i+1;j<coins.length;j++)
+      {
+        var atx=centers[coins[i]]['x']-centers[coins[j]]['x'];
+        var aty=centers[coins[i]]['y']-centers[coins[j]]['y'];
+        var adist=Math.sqrt(atx*atx+aty*aty);
+        if(adist<=centers[coins[i]]['r']+centers[coins[j]]['r'])
+        {
+          //update the velocities
+          console.log('Collision');
+          conserve_mom(coins[i],coins[j]);
+        }
+      }
     }
     check_bord_coll('red',8);
     centers['red']['x'] += centers['red']['vx'];
@@ -376,6 +412,27 @@ function main()
 		colors = getcolors_cylinder([255,0,0]);
 		matrix = computematrix([44,centers['red']['y'],centers['red']['x']],rotation,scale);
 		drawObject(matrix,vpmatrix,positions,colors,216,1);
+    //For white coins
+    colors = getcolors_cylinder([205,138,47]);
+    var str='white';
+    for(var i=1;i<5;i++)
+    {
+      check_bord_coll(str+i,8);
+      matrix = computematrix([44,centers[str+i]['y'],centers[str+i]['x']],rotation,scale);
+  		drawObject(matrix,vpmatrix,positions,colors,216,1);
+      centers[str+i]['x'] += centers[str+i]['vx'];
+      centers[str+i]['y'] += centers[str+i]['vy'];
+    }
+    str='black';
+    colors=getcolors_cylinder([0,0,0]);
+    for(var i=1;i<5;i++)
+    {
+      check_bord_coll(str+i,8);
+      matrix = computematrix([44,centers[str+i]['y'],centers[str+i]['x']],rotation,scale);
+  		drawObject(matrix,vpmatrix,positions,colors,216,1);
+      centers[str+i]['x'] += centers[str+i]['vx'];
+      centers[str+i]['y'] += centers[str+i]['vy'];
+    }
 	}
 }
 
@@ -401,30 +458,38 @@ function subtractVectors(a, b) {
 
 function apply_friction()
 {
-  if(centers['red']['vx']>0)
-    centers['red']['vx']-=0.01;
-  if(centers['red']['vy']>0)
-    centers['red']['vy']-=0.01;
-  if(centers['red']['vx']<0)
-    centers['red']['vx']+=0.01;
-  if(centers['red']['vy']<0)
-    centers['red']['vy']+=0.01;
-  if(Math.abs(centers['red']['vy'])<0.05)
-    centers['red']['vy']=0;
-  if(Math.abs(centers['red']['vx'])<0.05)
-    centers['red']['vx']=0;
-  if(velX>0)
-    velX-=0.01;
-  if(velY>0)
-    velY-=0.01;
-  if(velX<0)
-    velX+=0.01;
-  if(velY<0)
-    velY+=0.01;
-  if(Math.abs(velX)<0.05)
+  for(var i=1;i<coins.length;i++)
+  {
+    centers[coins[i]]['vx']*=0.95;
+    centers[coins[i]]['vy']*=0.95;
+    // if(centers[coins[i]]['vx']>0)
+    //   centers[coins[i]]['vx']-=0.01;
+    // if(centers[coins[i]]['vy']>0)
+    //   centers[coins[i]]['vy']-=0.01;
+    // if(centers[coins[i]]['vx']<0)
+    //   centers[coins[i]]['vx']+=0.01;
+    // if(centers[coins[i]]['vy']<0)
+    //   centers[coins[i]]['vy']+=0.01;
+    if(Math.abs(centers[coins[i]]['vy'])<0.01)
+      centers[coins[i]]['vy']=0;
+    if(Math.abs(centers[coins[i]]['vx'])<0.01)
+      centers[coins[i]]['vx']=0;
+  }
+  velX*=0.95;
+  velY*=0.95;
+  // if(velX>0)
+  //   velX-=0.01;
+  // if(velY>0)
+  //   velY-=0.01;
+  // if(velX<0)
+  //   velX+=0.01;
+  // if(velY<0)
+  //   velY+=0.01;
+  if(Math.abs(velX)<0.01)
     velX=0;
-  if(Math.abs(velY)<0.05)
+  if(Math.abs(velY)<0.01)
     velY=0;
+
 }
 
 function normalize(v) {
@@ -568,6 +633,11 @@ function matrixMultiply(a, b)
 	}
 	return mult;
 }
+function Vector(x,y)
+{
+  this.x=x;
+  this.y=y;
+}
 
 function conserve_mom(obj1,obj2)
 {
@@ -597,6 +667,23 @@ function conserve_mom(obj1,obj2)
   centers[obj1]['vy']=sinAngle*finx1 + cosAngle*finy1;
   centers[obj2]['vx']=cosAngle*finx2 - sinAngle*finy2;
   centers[obj2]['vy']=sinAngle*finx2 + cosAngle*finy2;
+
+  var posx1=x1,posx2=x2,posy1=y1,posy2=y2;
+  var posDiffx=posx1-posx2,posDiffy=posy1-posy2;
+  var d = Math.sqrt(posDiffx*posDiffx+posDiffy*posDiffy);
+  var mtdx=posDiffx*((centers[obj1]['r']+centers[obj2]['r']-d)/d);
+  var mtdy=posDiffy*((centers[obj1]['r']+centers[obj2]['r']-d)/d);
+  var im1=1/m1;
+  var im2=1/m2;
+  posx1 += mtdx*(im1/(im1+im2));
+  posx2 += -mtdx*(im2/(im1+im2));
+  posy1 += mtdy*(im1/(im1+im2));
+  posy2 += -mtdy*(im2/(im1+im2));
+
+  centers[obj1]['x']=posx1;
+  centers[obj1]['y']=posy1;
+  centers[obj2]['x']=posx2;
+  centers[obj2]['y']=posy2;
 }
 
 function makeInverse(m)
@@ -787,7 +874,8 @@ precision mediump float;
 	<body>
 
 		<canvas id="canvas" width="600" height="600"></canvas>
-		<p id="myDiv"></p>
+		<p id="myDiv1"></p>
+    <p id="myDiv2"></p>
 		<div id="uiContainer">
 			<div id="ui">
 				<div id="cameraAngle"><div class="gman-slider-outer"><div class="gman-slider-upper"><div class="gman-slider-label">cameraAngle</div><div class="gman-slider-value">-360</div></div><div class="gman-slider-slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all"><a style="left: 0%;" class="ui-slider-handle ui-state-default ui-corner-all ui-state-focus" href="#"></a></div></div></div>
