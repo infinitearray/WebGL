@@ -24,7 +24,7 @@ $(function()
 		{
 			main();
 		});
-
+var centers = {};
 function main()
 {
 	// Get A WebGL context
@@ -32,9 +32,9 @@ function main()
 	var mousex,mousey,strikerx=0,strikery=0,velX=0,velY=0;
 	var clicks=0,thrust=5,finalMouseX,finalMouseY;
 	var move=false,dist=0,setPosition=false;
-  var centers = {};//extreme concept
-  centers['striker']={'x':strikerx,'y':strikery};
-  centers['red']={'x':300,'y':300};
+  //var centers = {};//extreme concept
+  centers['striker']={'x':strikerx,'y':strikery,'m':10*10,'vx':0,'vy':0};
+  centers['red']={'x':300,'y':300,'m':8*8,'vx':0,'vy':0};
 	var gl = getWebGLContext(canvas);
 	if (!gl)
 	{
@@ -240,7 +240,7 @@ function main()
 		var up = [0, 1, 0];
 		// console.log(cameraPosition);
 		// Compute the camera's matrix using look at.
-		var cameraMatrix = makeLookAt([-350,300,300], [0,300,300], up);
+		var cameraMatrix = makeLookAt([-350,-300,300], [0,300,300], up);
 		// Make a view matrix from the camera matrix.
 		var viewMatrix = makeInverse(cameraMatrix);
 		var vpmatrix = matrixMultiply(viewMatrix,projectionMatrix);
@@ -349,10 +349,8 @@ function main()
 		}
     centers['striker']['x']=strikerx;
     centers['striker']['y']=strikery;
-		positions = getvertices_cylinder(10,10,18);
-		colors = getcolors_cylinder([3,120,213]);
-		matrix = computematrix([44,strikery,strikerx],rotation,scale);
-		drawObject(matrix,vpmatrix,positions,colors,216,1);
+    centers['striker']['vx']=velX,centers['striker']['vy']=velY;
+
     //For collision with striker red coin
     var atx=centers['striker']['x']-centers['red']['x'];
     var aty=centers['striker']['y']-centers['red']['y'];
@@ -361,8 +359,15 @@ function main()
     {
       //update the velocities
       console.log('Collision');
+      conserve_mom('striker','red');
     }
-
+    centers['red']['x'] += centers['red']['vx']/10;
+    centers['red']['y'] += centers['red']['vy']/10;
+    //For striker
+    positions = getvertices_cylinder(10,10,18);
+		colors = getcolors_cylinder([3,120,213]);
+		matrix = computematrix([44,strikery,strikerx],rotation,scale);
+		drawObject(matrix,vpmatrix,positions,colors,216,1);
     //For red coin
     positions = getvertices_cylinder(8,10,18);
 		colors = getcolors_cylinder([255,0,0]);
@@ -513,6 +518,36 @@ function matrixMultiply(a, b)
 	return mult;
 }
 
+function conserve_mom(obj1,obj2)
+{
+  var x1=centers[obj1]['x'],y1=centers[obj1]['y'];
+  var x2=centers[obj2]['x'],y2=centers[obj2]['y'];
+  var collisionision_angle = Math.atan2(y1-y2,x1-x2);
+  var vx1= centers[obj1]['vx'],vy1=centers[obj1]['vy'];
+  var vx2=centers[obj2]['vx'],vy2=centers[obj2]['vy'];
+  var speed1 = Math.sqrt(vx1*vx1+vy1*vy1);
+  var speed2 = Math.sqrt(vx2*vx2+vy2*vy2);
+  var direction_1 = Math.atan2(y1,x1);
+  var direction_2 = Math.atan2(y2,x2);
+  var m1=centers[obj1]['m'],m2=centers[obj2]['m'];
+
+  var newx1 = speed1 * Math.Cos(direction_1 - collisionision_angle);
+  var newy1 = speed1 * Math.Sin(direction_1 - collisionision_angle);
+  var newx2 = speed2 * Math.Cos(direction_2 - collisionision_angle);
+  var newy2 = speed2 * Math.Sin(direction_2 - collisionision_angle);
+
+  var finx1 = ((m1-m2)*newx1 + (m2+m2)*newx2)/(m1+m2);
+  var finx2 = ((m1+m1)*newx1 + (m2-m1)*newx2)/(m1+m2);
+  var finy1 = newy1;
+  var finy2 = newy2;
+  var cosAngle = Math.Cos(collisionision_angle);
+  var sinAngle = Math.Sin(collisionision_angle);
+  centers[obj1]['vx']=cosAngle*finx1 - sinAngle*finy1;
+  centers[obj1]['vy']=sinAngle*finx1 + cosAngle*finy1;
+  centers[obj2]['vx']=cosAngle*finx2 - sinAngle*finy2;
+  centers[obj2]['vy']=sinAngle*finx2 + cosAngle*finy2;
+}
+
 function makeInverse(m)
 {
 
@@ -587,27 +622,27 @@ function getvertices_cuboid(L,B,H)
 				-L, -H,  B,
 				//right Face
 				L, -H,  B,
-					L, -H, -B,
-					L,  H, -B,
-						L,  H, -B,
-						L,  H,  B,
-							L, -H,  B,
-							//Top Face
-							-L,  H,  B,
-								-L,  H, -B,
-								L,  H, -B,
-									L,  H, -B,
-									L,  H,  B,
-										-L,  H,  B,
-										//Bottom Face
-										-L, -H,  B,
-											-L, -H, -B,
-											L, -H, -B,
-												L, -H, -B,
-												L, -H,  B,
-													-L, -H,  B
+				L, -H, -B,
+				L,  H, -B,
+				L,  H, -B,
+				L,  H,  B,
+				L, -H,  B,
+				//Top Face
+				-L,  H,  B,
+				-L,  H, -B,
+				L,  H, -B,
+				L,  H, -B,
+				L,  H,  B,
+				-L,  H,  B,
+				//Bottom Face
+				-L, -H,  B,
+				-L, -H, -B,
+				L, -H, -B,
+				L, -H, -B,
+				L, -H,  B,
+				-L, -H,  B
 
-														]);
+					]);
 }
 
 function getvertices_cylinder(R,H,n)
